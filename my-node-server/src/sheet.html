@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Book a Meeting</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        Intercom Sheets Library
+        <script src="https://s3.amazonaws.com/intercom-sheets.com/messenger-sheet-library.latest.js"></script>
+        EasePick Datepicker CSS and JS
+        <style>
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                padding: 20px;
+                background-color: #fff;
+                margin: 0;
+                line-height: 1.5;
+            }
+            .container {
+                max-width: 400px;
+                margin: 0 auto;
+                text-align: center;
+            }
+            h2 {
+                color: #333;
+                margin-bottom: 20px;
+                font-size: 24px;
+                font-weight: 600;
+            }
+            .datepicker-container {
+                margin: 20px 0;
+                padding: 20px;
+                border: 1px solid #E1E5E9;
+                border-radius: 8px;
+                background: #F8F9FA;
+            }
+            #datepicker {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                font-size: 16px;
+                background: white;
+            }
+            #book {
+                background: #0084FF;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                margin-top: 20px;
+                transition: background 0.2s;
+            }
+            #book:hover {
+                background: #0066CC;
+            }
+            #book:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+            .selected-date {
+                margin: 15px 0;
+                padding: 10px;
+                background: #E7F3FF;
+                border-radius: 5px;
+                color: #0066CC;
+                font-weight: 500;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Choose a Meeting Date</h2>
+            <p>Please select your preferred date for the meeting:</p>
+            <div class="datepicker-container">
+                <input
+                    id="datepicker"
+                    placeholder="Click to select a date"
+                    readonly
+                />
+                <div
+                    id="selected-date"
+                    class="selected-date"
+                    style="display: none"
+                ></div>
+            </div>
+            <button id="book">Book Meeting</button>
+        </div>
+        <script>
+            let picker;
+            let selectedDate = null;
+            document.addEventListener("DOMContentLoaded", () => {
+                // Handle book button click
+                const submitButton = document.getElementById("book");
+                submitButton.addEventListener("click", () => {
+                    // Submit the sheet with the selected date
+                    INTERCOM_MESSENGER_SHEET_LIBRARY.submitSheet({
+                        date: new Date().toISOString(),
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>

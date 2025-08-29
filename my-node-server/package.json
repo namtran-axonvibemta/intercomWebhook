@@ -7,9 +7,11 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
   },
   "author": "",
-  "license": "ISC", 
+  "license": "ISC",
   "packageManager": "yarn@1.22.22"
 }

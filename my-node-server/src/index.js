@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 import path from "path";
 import cors from "cors";
 import crypto from "crypto";
-import fs from "fs"; // <-- Add this line
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,7 +48,7 @@ const initialCanvas = {
           id: "submit_button",
           action: {
             type: "sheet",
-            url: "your-replit-link/sheet",
+            url: "https://intercomwebhook.onrender.com/sheet",
           },
         },
       ],
@@ -83,7 +82,7 @@ app.post("/sheet", (req, res) => {
 
   console.log(decodedUser);
 
-  res.sendFile(path.join(__dirname, "public", "sheet.html"));
+  res.sendFile(path.join(__dirname, "sheet.html"));
 });
 
 /*
@@ -96,28 +95,11 @@ You could also take the user data and pass it from here to perform other actions
 */
 app.post("/submit-sheet", (req, res) => {
   // you can get data about the contact, company, and sheet from the request
-  const userData = req.body;
-  console.log(userData);
-
-  // Log to HTML file
-  const logHtml = `
-    <div style="border-bottom:1px solid #ccc; margin-bottom:10px; padding-bottom:10px;">
-      <strong>Time:</strong> ${new Date().toLocaleString()}<br>
-      <strong>Submission:</strong>
-      <pre>${JSON.stringify(userData, null, 2)}</pre>
-    </div>
-  `;
-  fs.appendFile(
-    path.join(__dirname, "submissions.html"),
-    logHtml,
-    (err) => {
-      if (err) {
-        console.error("Failed to log submission:", err);
-      }
-    }
-  );
+  console.log(req.body);
 
   const chosenDate = new Date(req.body.sheet_values.date);
+
+  // Extract the date part in YYYY-MM-DD format
   const displayDate = chosenDate.toISOString().split("T")[0];
 
   const finalCanvas = {
@@ -137,16 +119,6 @@ app.post("/submit-sheet", (req, res) => {
   };
 
   res.send(finalCanvas);
-});
-
-// Add a route to view the log
-app.get("/submissions", (req, res) => {
-  const logPath = path.join(__dirname, "submissions.html");
-  if (fs.existsSync(logPath)) {
-    res.sendFile(logPath);
-  } else {
-    res.send("<h2>No submissions yet.</h2>");
-  }
 });
 
 /*
