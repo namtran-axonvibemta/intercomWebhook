@@ -2,9 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Intercom Webhook Server</title>
+  <title>Intercom Webhook Server Setup</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+    .log { background: #222; color: #0f0; padding: 1em; border-radius: 5px; margin-top: 1em; }
+  </style>
 </head>
 <body>
-  <h1>Intercom Webhook Server is running!</h1>
+  <h1>Intercom Messenger Webhook Server</h1>
+  <p>
+    Your server is running and ready to receive Intercom Canvas Kit webhooks.
+  </p>
+  <h2>Endpoints</h2>
+  <ul>
+    <li>
+      <strong>Initialize Canvas:</strong>
+      <code>POST /initialize</code>
+    </li>
+    <li>
+      <strong>Submit Canvas:</strong>
+      <code>POST /submit</code>
+    </li>
+  </ul>
+  <h2>How to use</h2>
+  <ol>
+    <li>
+      In your <a href="https://app.intercom.com/a/apps/_/developer-hub" target="_blank">Intercom Developer Hub</a>, set your webhook URLs to:
+      <ul>
+        <li><code>https://intercomwebhook.onrender.com/initialize</code></li>
+        <li><code>https://intercomwebhook.onrender.com/submit</code></li>
+      </ul>
+      Replace <code>your-server-url</code> with your actual deployed server address.
+    </li>
+    <li>
+      Use the <a href="https://developers.intercom.com/docs/references/canvas-kit/responseobjects/canvas/" target="_blank">Canvas Kit</a> to build your Messenger app.
+    </li>
+  </ol>
+  <h2>Server Log</h2>
+  <div class="log" id="log">
+    Server is running.<br>
+    Waiting for webhook requests...
+  </div>
+  <script>
+    // Optionally, you can add client-side logging here in the future.
+  </script>
 </body>
 </html>
