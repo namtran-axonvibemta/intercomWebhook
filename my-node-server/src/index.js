@@ -67,10 +67,10 @@ app.post("/sheet", (req, res) => {
   const jsonParsed = JSON.parse(req.body.intercom_data);
   console.log("intercom_data: ", jsonParsed);
   console.log("req.body: ", req.body);
-  const encodedUser = jsonParsed.user;
-  console.log(encodedUser);
-  let decodedUser = decodeUser(encodedUser);
-  console.log(decodedUser);
+  //const encodedUser = jsonParsed.user;
+  //console.log(encodedUser);
+  //let decodedUser = decodeUser(encodedUser);
+  //console.log(decodedUser);
   res.sendFile(path.join(__dirname, "sheet.html"));
 });
 /*
@@ -107,24 +107,24 @@ app.post("/submit-sheet", (req, res) => {
 /*
 This function can be used to decode the user object, which will allow you to verify the identity of the user.
 */
-function decodeUser(encodedUser) {
-  const masterkey = process.env["CLIENT_SECRET"];
-  // base64 decoding
-  const bData = Buffer.from(encodedUser, "base64");
-  // convert data to buffers
-  const ivlen = 12;
-  const iv = bData.slice(0, ivlen);
-  const taglen = 16;
-  const tag = bData.slice(bData.length - taglen, bData.length);
-  const cipherLen = bData.length - taglen;
-  const cipherText = bData.slice(ivlen, cipherLen);
-  let hash = crypto.createHash("sha256").update(masterkey);
-  let key = Buffer.from(hash.digest("binary"), "binary"); //buffer from binary string.
-  // AES 256 GCM Mode
-  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
-  decipher.setAuthTag(tag);
-  // encrypt the given text
-  let decrypted = decipher.update(cipherText, "binary", "utf8");
-  decrypted += decipher.final("utf8");
-  return decrypted;
-}
+// function decodeUser(encodedUser) {
+//   const masterkey = process.env["CLIENT_SECRET"];
+//   // base64 decoding
+//   const bData = Buffer.from(encodedUser, "base64");
+//   // convert data to buffers
+//   const ivlen = 12;
+//   const iv = bData.slice(0, ivlen);
+//   const taglen = 16;
+//   const tag = bData.slice(bData.length - taglen, bData.length);
+//   const cipherLen = bData.length - taglen;
+//   const cipherText = bData.slice(ivlen, cipherLen);
+//   let hash = crypto.createHash("sha256").update(masterkey);
+//   let key = Buffer.from(hash.digest("binary"), "binary"); //buffer from binary string.
+//   // AES 256 GCM Mode
+//   const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+//   decipher.setAuthTag(tag);
+//   // encrypt the given text
+//   let decrypted = decipher.update(cipherText, "binary", "utf8");
+//   decrypted += decipher.final("utf8");
+//   return decrypted;
+// }
