@@ -94,12 +94,16 @@ When this endpoint is called from within the sheet, it will:
 You could also take the user data and pass it from here to perform other actions.
 */
 app.post("/submit-sheet", (req, res) => {
-  // you can get data about the contact, company, and sheet from the request
-  console.log(req.body);
+  // Log the full request body for debugging
+  console.log("User submitted sheet:", req.body);
 
-  const chosenDate = new Date(req.body.sheet_values.date);
+  // Defensive checks
+  const sheetValues = req.body.sheet_values;
+  if (!sheetValues || !sheetValues.date) {
+    return res.status(400).send({ error: "Missing sheet_values or date in submission." });
+  }
 
-  // Extract the date part in YYYY-MM-DD format
+  const chosenDate = new Date(sheetValues.date);
   const displayDate = chosenDate.toISOString().split("T")[0];
 
   const finalCanvas = {
