@@ -2,74 +2,54 @@ import express from "express";
 import bodyParser from "body-parser";
 import { fileURLToPath } from "url";
 import path from "path";
+import cors from "cors";
+import crypto from "crypto";
+import fs from "fs"; // <-- Add this line
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
+app.use(function (req, res, next) {
+  res.setHeader(
+    "Content-Security-Policy",
+    "frame-src 'self' https://intercom-sheets.com",
+  );
+  res.setHeader("X-Requested-With", "XMLHttpRequest");
+  next();
+});
+
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static("public"));
 app.use(express.static(path.join(__dirname)));
 
-const listener = app.listen(process.env.PORT || 3000, () => {
+const listener = app.listen(process.env.PORT, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
 
-/*
-  These objects define the canvases that will display in your app, including textareas, inputs, and buttons.
-  More information on these can be found in the reference docs.
-  Canvas docs: https://developers.intercom.com/docs/references/canvas-kit/responseobjects/canvas/
-  Components docs: https://developers.intercom.com/docs/references/canvas-kit/interactivecomponents/button/
-*/
 const initialCanvas = {
   canvas: {
     content: {
       components: [
         {
           type: "text",
-          id: "feedback",
-          text: "Leave us some feedback:",
+          id: "book-meeting",
+          text: "Book a Meeting",
           align: "center",
           style: "header",
         },
         {
-          type: "textarea",
-          id: "description",
-          label: "Description",
-          placeholder: "",
-        },
-        {
-          type: "single-select",
-          id: "csat",
-          label: "How would you rate your satisfaction with our product?",
-          options: [
-            {
-              type: "option",
-              id: "dissatisfied",
-              text: "Dissatisfied"
-            },
-            {
-              type: "option",
-              id: "neutral",
-              text: "Neutral"
-            },
-            {
-              type: "option",
-              id: "satisfied",
-              text: "satisfied"
-            }
-          ]
-        },
-        {
           type: "button",
-          label: "Submit",
+          label: "See dates",
           style: "primary",
           id: "submit_button",
           action: {
-            type: "submit",
+            type: "sheet",
+            url: "your-replit-link/sheet",
           },
         },
       ],
@@ -77,68 +57,127 @@ const initialCanvas = {
   },
 };
 
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, "public")));
 
-const finalCanvas = {
-  canvas: {
-    content: {
-      components: [
-        {
-          type: "text",
-          id: "thanks",
-          text: "Thanks for letting us know!",
-          align: "center",
-          style: "header",
-        },
-        {
-          type: "button",
-          label: "Submit another",
-          style: "primary",
-          id: "refresh_button",
-          action: {
-            type: "submit",
-          },
-        },
-      ],
-    },
-  },
-};
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+app.get("/", (response) => {
+  response.sendFile(path.join(__dirname, "index.html"));
 });
 
-/*
-  This is an endpoint that Intercom will POST HTTP request when the card needs to be 
-  initialized.
-  
-  This can happen when your teammate inserts the app into a conversation composer, 
-  Messenger home settings or User Message.
-  
-  Learn more: https://developers.intercom.com/docs/build-an-integration/getting- 
-  started/build-an-app-for-your-messenger/request-flows/#initialize-flow
-*/
+// Send the first canvas which will display a button
 app.post("/initialize", (request, response) => {
   response.send(initialCanvas);
 });
 
 /*
-  When a submit action is taken in a canvas component, it will hit this endpoint.
-
-  You can use this endpoint as many times as needed within a flow. You will need 
-  to set up the conditions that will show it the required canvas object based on a 
-  user/contact's actions.
-
-  In this example, if a user has clicked the initial submit button, it will show 
-  them the final thank you canvas. If they click the refresh button to submit 
-  another, it will show the initial canvas once again to repeat the process.
+When this endpoint is called, it will decode and verify the user, then display the sheet in the iFrame.
 */
-app.post("/submit", (request, response) => {
-  // Log the incoming submission to the server console
-  console.log("Canvas form submission received:", request.body);
+app.post("/sheet", (req, res) => {
+  const jsonParsed = JSON.parse(req.body.intercom_data);
 
-  if (request.body.component_id == "submit_button") {
-    response.send(finalCanvas);
+  const encodedUser = jsonParsed.user;
+
+  console.log(encodedUser);
+
+  let decodedUser = decodeUser(encodedUser);
+
+  console.log(decodedUser);
+
+  res.sendFile(path.join(__dirname, "public", "sheet.html"));
+});
+
+/*
+When this endpoint is called from within the sheet, it will:
+- close the sheet
+- gather the user-submitted data
+- display the final canvas you would like to show the user
+
+You could also take the user data and pass it from here to perform other actions.
+*/
+app.post("/submit-sheet", (req, res) => {
+  // you can get data about the contact, company, and sheet from the request
+  const userData = req.body;
+  console.log(userData);
+
+  // Log to HTML file
+  const logHtml = `
+    <div style="border-bottom:1px solid #ccc; margin-bottom:10px; padding-bottom:10px;">
+      <strong>Time:</strong> ${new Date().toLocaleString()}<br>
+      <strong>Submission:</strong>
+      <pre>${JSON.stringify(userData, null, 2)}</pre>
+    </div>
+  `;
+  fs.appendFile(
+    path.join(__dirname, "submissions.html"),
+    logHtml,
+    (err) => {
+      if (err) {
+        console.error("Failed to log submission:", err);
+      }
+    }
+  );
+
+  const chosenDate = new Date(req.body.sheet_values.date);
+  const displayDate = chosenDate.toISOString().split("T")[0];
+
+  const finalCanvas = {
+    canvas: {
+      content: {
+        components: [
+          {
+            type: "text",
+            id: "closing",
+            text: "Thanks! Your meeting is booked for " + displayDate,
+            align: "center",
+            style: "header",
+          },
+        ],
+      },
+    },
+  };
+
+  res.send(finalCanvas);
+});
+
+// Add a route to view the log
+app.get("/submissions", (req, res) => {
+  const logPath = path.join(__dirname, "submissions.html");
+  if (fs.existsSync(logPath)) {
+    res.sendFile(logPath);
   } else {
-    response.send(initialCanvas);
+    res.send("<h2>No submissions yet.</h2>");
   }
 });
+
+/*
+This function can be used to decode the user object, which will allow you to verify the identity of the user.
+*/
+function decodeUser(encodedUser) {
+  const masterkey = process.env["CLIENT_SECRET"];
+
+  // base64 decoding
+  const bData = Buffer.from(encodedUser, "base64");
+
+  // convert data to buffers
+  const ivlen = 12;
+  const iv = bData.slice(0, ivlen);
+
+  const taglen = 16;
+  const tag = bData.slice(bData.length - taglen, bData.length);
+
+  const cipherLen = bData.length - taglen;
+  const cipherText = bData.slice(ivlen, cipherLen);
+
+  let hash = crypto.createHash("sha256").update(masterkey);
+  let key = Buffer.from(hash.digest("binary"), "binary"); //buffer from binary string.
+
+  // AES 256 GCM Mode
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+  decipher.setAuthTag(tag);
+
+  // encrypt the given text
+  let decrypted = decipher.update(cipherText, "binary", "utf8");
+  decrypted += decipher.final("utf8");
+
+  return decrypted;
+}
