@@ -133,6 +133,9 @@ app.post("/initialize", (request, response) => {
   another, it will show the initial canvas once again to repeat the process.
 */
 app.post("/submit", (request, response) => {
+  // Log the incoming submission to the server console
+  console.log("Canvas form submission received:", request.body);
+
   if (request.body.component_id == "submit_button") {
     response.send(finalCanvas);
   } else {
